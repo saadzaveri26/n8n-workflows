@@ -1,0 +1,235 @@
+{
+  "name": "Contract Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1l6q7roZ5Wu6TdBoMhYV-hVC6MJQQxz1G7qE1T_DQBSc",
+          "mode": "list",
+          "cachedResultName": "Client List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1l6q7roZ5Wu6TdBoMhYV-hVC6MJQQxz1G7qE1T_DQBSc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1l6q7roZ5Wu6TdBoMhYV-hVC6MJQQxz1G7qE1T_DQBSc/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6a869516-a8a2-476a-9b3b-09b0fac3cbee",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "5I5uSERf70yRRlRk",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1V6MOcmwRnZj_yRes5XrIbOCZKsGYvxVBcPJbYUAA8g8",
+          "mode": "id"
+        },
+        "name": "=Contract - {{ $json.ClientName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2bf6b044-05e7-4546-a78c-13966848e196",
+      "name": "Copy file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "TUXUzbXH62iGgS6d",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{ClientName}}",
+              "replaceText": "={{ $('Google Sheets Trigger').item.json.ClientName }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Price}}",
+              "replaceText": "={{ $('Google Sheets Trigger').item.json.Price }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Email}}",
+              "replaceText": "={{ $('Google Sheets Trigger').item.json.Email }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Date}}",
+              "replaceText": "={{ $('Google Sheets Trigger').item.json.Date }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d0cb285b-6680-41fb-8875-8f93b3f21b87",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "exGkJQNxN4fy2FeM",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Copy file').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "1642a215-436c-4296-bd1e-306f7891cf51",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "TUXUzbXH62iGgS6d",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Email }}",
+        "subject": "=Contract for  {{ $('Google Sheets Trigger').item.json.ClientName }}",
+        "emailType": "text",
+        "message": "\"Here is the contract we discussed. Please sign and return.\"",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "318ce49d-d5b0-4ae7-bfea-e872531c9e23",
+      "name": "Send a message",
+      "webhookId": "3961e65d-f4c3-4e56-b78f-94a002e957fd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CPeEmE88HW2q4lyO",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Copy file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy file": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "b9b4a6ee-fcb0-45a8-93ae-4e4c2cfdf137",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "hWnj29Tb2BhT4omG",
+  "tags": []
+}

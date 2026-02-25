@@ -1,0 +1,171 @@
+{
+  "name": "Resume Screener",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "=subject:Application",
+          "readStatus": "unread"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8af9054e-8934-4c0e-b7c8-a9abe4c14300",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CPeEmE88HW2q4lyO",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4af6a678-4188-40e9-8e65-df7c45bf5336",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strict Technical Recruiter.\nI am pasting a candidate's resume below.\nCompare them against this Job Description: \"Junior AI Engineer. Must know Python, n8n, and basic LLM concepts.\"\n\nResume Text:\n{{ $json.text }}\n\nTask:\n1. Give them a Score out of 10.\n2. Write a 1-sentence summary of why.\n3. Output your answer in this exact format:\nScore: [Number]\nReason: [Summary]",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        416,
+        0
+      ],
+      "id": "a8dbefab-20ac-4def-bc26-74dd64d6dc4d",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "maxTokensToSample": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        352,
+        208
+      ],
+      "id": "d38c17f0-1dec-4312-87e1-ccc145facd4c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7eQdU3MANEVsSuUZ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5733665516",
+        "text": "=📄 **Resume Analysis Complete**\n\ncandidate_score: {{ $json.text }}\n\n(If Score > 7, interview them immediately!)",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "ddd2129c-6df0-4597-97a5-575ca1d3da0d",
+      "name": "Send a text message",
+      "webhookId": "3ed0dedb-6297-4dfb-8823-8a472cf9d363",
+      "credentials": {
+        "telegramApi": {
+          "id": "tlImSKKL5ghlxUcT",
+          "name": "Resume Screener"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "fab11b97-902c-4a33-af11-989e4139783c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "So4UducWDmkJHJFk",
+  "tags": []
+}

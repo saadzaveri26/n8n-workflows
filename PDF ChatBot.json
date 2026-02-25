@@ -1,0 +1,193 @@
+{
+  "name": "PDF ChatBot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0fb6aa62-343b-46d9-b3ba-11a0125b8f11",
+      "name": "Telegram Trigger",
+      "webhookId": "01b77c6b-684d-4373-b317-d3260b83b6db",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gui9YtIeXi0gTQc7",
+          "name": "pdf chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.document.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6d108c38-a1af-490d-a29a-fcddd55c0421",
+      "name": "Get a file",
+      "webhookId": "46144822-02df-4053-a7e2-e037a96701d8",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gui9YtIeXi0gTQc7",
+          "name": "pdf chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ea02b445-feee-425b-8260-e4da045b9c75",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Summarize this: {{ $json.text }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        624,
+        0
+      ],
+      "id": "2c60c1d5-7e05-4f4e-88a0-0dc44d7785fd",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "maxTokensToSample": 1500
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        624,
+        208
+      ],
+      "id": "247a3cfd-cee9-4665-a4cd-1e42bfbf5107",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7eQdU3MANEVsSuUZ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "1d0ade45-00c4-4af9-8619-2330a947fc96",
+      "name": "Send a text message",
+      "webhookId": "b21426fb-6696-4cdb-80ba-ef0edcd18da5",
+      "credentials": {
+        "telegramApi": {
+          "id": "Gui9YtIeXi0gTQc7",
+          "name": "pdf chatbot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a545d525-ad19-4832-ae77-2307b3fac82b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "AUdm8SkmIWnjmJT5",
+  "tags": []
+}

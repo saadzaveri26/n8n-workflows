@@ -1,0 +1,212 @@
+{
+  "name": "YouTube Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5ea6731a-4633-4592-97c0-918203884a59",
+      "name": "Telegram Trigger",
+      "webhookId": "d6cb3582-24ea-4113-854d-e74d9876a725",
+      "credentials": {
+        "telegramApi": {
+          "id": "Y4nztDBsqN8s7z96",
+          "name": "YouTube Summarizer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\"Summarize this video transcript: {{ $json.transcript }}\"",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        816,
+        0
+      ],
+      "id": "db7ab180-f943-43b3-ba25-0acab5d94d8c",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "maxTokensToSample": 1500
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        816,
+        224
+      ],
+      "id": "8fe76a42-11e3-4bdb-a2d0-0f68c33ec4d1",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7eQdU3MANEVsSuUZ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the URL from the message\nconst url = $input.item.json.message.text;\nlet videoId = \"\";\n\n// Extract ID (works for youtu.be and youtube.com)\nif (url.includes(\"v=\")) {\n  videoId = url.split(\"v=\")[1].split(\"&\")[0];\n} else {\n  videoId = url.split(\"/\").pop().split(\"?\")[0];\n}\n\nreturn { json: { video_id: videoId } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a86b6ead-f308-4ea8-8b6a-bebf93f63a44",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The previous node returns an array of items. We need to join them.\nconst allItems = $input.all();\n\n// Map over all items to get the \"text\" field and join them\nconst fullTranscript = allItems.map(item => item.json.text).join(\" \");\n\nreturn { json: { transcript: fullTranscript } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "5502a477-518c-4d10-812c-432f65e3dbcb",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        0
+      ],
+      "id": "2935769f-7d18-4efe-91bc-fcc8a8c30ce3",
+      "name": "Send a text message",
+      "webhookId": "6e6105fd-22e2-49dc-8941-9c740c1c780a",
+      "credentials": {
+        "telegramApi": {
+          "id": "Y4nztDBsqN8s7z96",
+          "name": "YouTube Summarizer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/h7sDV53CddomktSi5/run-sync-get-dataset-items?token=your_apify_key",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"startUrls\": [{ \"url\": \"{{ $('Telegram Trigger').item.json.message.text }}\" }],\n  \"maxResults\": 1,\n  \"downloadSubtitles\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2453b46a-a098-49a0-aa9c-4c672dafe023",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "74f28a89-3021-4bc7-b617-9d2224ba8ee2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "DKqS6xbHFBc1DlIr",
+  "tags": []
+}

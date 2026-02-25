@@ -1,0 +1,118 @@
+{
+  "name": "Social Autopilot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "82834fd4-70b0-4f41-a8d0-0ce183be7edf",
+      "name": "Telegram Trigger",
+      "webhookId": "a09470b9-b5e8-41e1-94c4-b6b2736fd8a8",
+      "credentials": {
+        "telegramApi": {
+          "id": "DdIuJfQyPlOzzJCb",
+          "name": "Social AutoPilot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=\"You are an expert ghostwriter. I will give you a topic. You must write two things:\n\n 1.A catchy LinkedIn Post (professional, line breaks, emojis).\n\n2.A punchy Twitter Thread (3 short tweets).\nTopic: \" {{ $json.message.text }} \""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "c7ea51af-3a5e-46b9-8e50-0932e2ffcb2b",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "32Fui9tW9iKRHuVs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        0
+      ],
+      "id": "1c27f239-5e8c-469e-a3cc-078fbf80257c",
+      "name": "Send a text message",
+      "webhookId": "85377886-4d3c-44c2-87a3-bd59f29ecdf1",
+      "credentials": {
+        "telegramApi": {
+          "id": "DdIuJfQyPlOzzJCb",
+          "name": "Social AutoPilot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "49e0df40-983e-4217-8e7d-25162bf1a45a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "9gEk39UIChB4qwm5",
+  "tags": []
+}

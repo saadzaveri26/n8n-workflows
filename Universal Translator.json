@@ -1,0 +1,135 @@
+{
+  "name": "Universal Translator",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c63f6150-cd36-47d1-9f68-3712e45d7c89",
+      "name": "Telegram Trigger",
+      "webhookId": "56500326-3aa2-488a-9804-33f2563d9021",
+      "credentials": {
+        "telegramApi": {
+          "id": "dnQMAQ1ywYRihdKV",
+          "name": "Universal Translator"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional Universal Translator.\nTranslate the user's input below into 3 languages: Spanish, Hindi, and French.\n\nUser Input: \"{{ $json.message.text }}\"\n\nOutput strictly in this format:\n🇪🇸 Spanish: [Translation]\n🇮🇳 Hindi: [Translation]\n🇫🇷 French: [Translation]",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ec54be5c-7694-4ae4-8345-91253607d879",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "maxTokensToSample": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        208,
+        176
+      ],
+      "id": "4eeaea9c-9634-4de7-a8ad-e002444d6cd4",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7eQdU3MANEVsSuUZ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "439f6159-8f8d-4ab6-a504-9f5e8dbf3c5c",
+      "name": "Send a text message",
+      "webhookId": "5c4472d1-e0a1-4bb8-a8b2-96a0dbaa3de1",
+      "credentials": {
+        "telegramApi": {
+          "id": "dnQMAQ1ywYRihdKV",
+          "name": "Universal Translator"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "03a02083-f0cc-4daa-8ab8-54ffe781d88c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "CGh4jGfIRvHOHWiV",
+  "tags": []
+}

@@ -1,0 +1,155 @@
+{
+  "name": "Researcher Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cd05bf41-6ae7-424e-af09-a9e4a24dc758",
+      "name": "Telegram Trigger",
+      "webhookId": "f8c1a453-68e2-4354-9e52-34d5548e90cb",
+      "credentials": {
+        "telegramApi": {
+          "id": "qlXiKEg6YvJ0eqHw",
+          "name": "Researcher Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b98f6d7b-804d-4de6-ae0d-13064aadc160",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "d8c9768e-2190-45b2-b81d-9d9426e9e151",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7eQdU3MANEVsSuUZ",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        368,
+        208
+      ],
+      "id": "b651e371-1e38-4019-96bb-26853e7dd22c",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "3b31770e-13af-4dc7-8558-32a0ff256dfc",
+      "name": "Send a text message",
+      "webhookId": "37362635-6107-44fe-bb36-355597141288",
+      "credentials": {
+        "telegramApi": {
+          "id": "qlXiKEg6YvJ0eqHw",
+          "name": "Researcher Agent"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "adbbde1a-c760-4736-9279-fb8bb23909f2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "tCTpJUwbHMBQmiLC",
+  "tags": []
+}

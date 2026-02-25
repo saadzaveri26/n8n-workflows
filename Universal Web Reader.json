@@ -1,0 +1,238 @@
+{
+  "name": "Universal Web Reader",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "66eae115-e8eb-41ab-bc64-e603981adcc6",
+      "name": "Telegram Trigger",
+      "webhookId": "4b261609-5eda-4e87-b5b4-3618bc556329",
+      "credentials": {
+        "telegramApi": {
+          "id": "VQE07rTC0mSHLsRb",
+          "name": "Master AI Agent Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -32,
+        -16
+      ],
+      "id": "13de1764-71c6-49e7-9a5e-3c65daeb8924",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\"I am sending you the raw HTML code of a website. Please ignore the code tags, extract the main article content, and summarize it into 5 clear bullet points {{ $json.data }}.\"",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        160,
+        -16
+      ],
+      "id": "1f437faf-4561-44e2-844a-454e6e4e2e78",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        112,
+        192
+      ],
+      "id": "f7eb0c02-4777-4759-a8db-2700df411a08",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "32Fui9tW9iKRHuVs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        -16
+      ],
+      "id": "3afc41df-32b1-4c00-aa12-d9f135f120b1",
+      "name": "Send a text message",
+      "webhookId": "9c95391e-059f-4e51-b4b0-3c1a23d49994",
+      "credentials": {
+        "telegramApi": {
+          "id": "VQE07rTC0mSHLsRb",
+          "name": "Master AI Agent Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1TVJPY-GBgUmd2OIlZUAy-iOVYilgO3ZnrwVyinGG8ms",
+          "mode": "list",
+          "cachedResultName": "AI Knowledge Base",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TVJPY-GBgUmd2OIlZUAy-iOVYilgO3ZnrwVyinGG8ms/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TVJPY-GBgUmd2OIlZUAy-iOVYilgO3ZnrwVyinGG8ms/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date ": "={{ $now }}",
+            "Link": "={{ $('Telegram Trigger').item.json.message.text }}",
+            "Summary": "={{ $json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date ",
+              "displayName": "Date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        224
+      ],
+      "id": "45a892af-e1f7-4e64-b9d8-8b4cd655d04c",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gRwz3gpPjRraWW0P",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c3bab9cc-442c-43fc-ab48-e1a17cad52d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de78d57b95937831a8123e7eba8a0454f620e6e20baf8f4a01d788a1df194c39"
+  },
+  "id": "2UnfoXvFugyQvDxB",
+  "tags": []
+}
