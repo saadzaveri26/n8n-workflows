@@ -1,0 +1,221 @@
+{
+  "name": "Github PR Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "github-pr",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "8ad40871-16a5-45d6-8e83-4694d4215d82",
+      "name": "Webhook",
+      "webhookId": "fc9c68a5-ce5d-4346-b5ac-a5ba400a0336"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nreturn [{\n  json: {\n    pr_number: body.pull_request?.number,\n    pr_title: body.pull_request?.title,\n    pr_body: body.pull_request?.body || \"No description provided\",\n    pr_url: body.pull_request?.html_url,\n    author: body.pull_request?.user?.login,\n    repo: body.repository?.full_name,\n    action: body.action,\n    base_branch: body.pull_request?.base?.ref,\n    head_branch: body.pull_request?.head?.ref,\n    changed_files: body.pull_request?.changed_files,\n    additions: body.pull_request?.additions,\n    deletions: body.pull_request?.deletions,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "dca90811-6fa0-4c38-b021-a1a119c87e92",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9cada304-9609-46f6-8da1-c8c72a583072",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "opened",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "3b5e1f17-35f7-4a4f-8d25-093439a74fd8",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "synchronize",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "031d9f99-89a9-4eec-89d7-f8178d0e7ba8",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "reopened",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "19851a66-dcfb-4b0c-b3c9-0c486aca48a9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Summarize this Pull Request:\n\nTitle: {{ $json.pr_title }}\nAuthor: {{ $json.author }}\nRepo: {{ $json.repo }}\nBranch: {{ $json.head_branch }} → {{ $json.base_branch }}\nDescription: {{ $json.pr_body }}\nFiles changed: {{ $json.changed_files }}\nAdditions: {{ $json.additions }} | Deletions: {{ $json.deletions }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a technical PR reviewer assistant. Summarize pull requests concisely for a developer team on Telegram. Be specific about what changed and why it matters. Keep it under 150 words."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "19473135-a6a7-42a2-a116-21eefb4dc62d",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "chatId": "5733665516",
+        "text": "=New PR #{{ $('Code in JavaScript').item.json.pr_number }}\n\nTitle: {{ $('Code in JavaScript').item.json.pr_title }}\nRepo: {{ $('Code in JavaScript').item.json.repo }}\nAuthor: {{ $('Code in JavaScript').item.json.author }}\nBranch: {{ $('Code in JavaScript').item.json.head_branch }}\n\nSummary:\n{{ $json.output }}\n\nURL: {{ $('Code in JavaScript').item.json.pr_url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        -32
+      ],
+      "id": "243cdf8e-e870-43b0-b429-356aa407112c",
+      "name": "Send a text message",
+      "webhookId": "d6f5376f-a991-4b38-890e-aa0dd3d3fcf7",
+      "credentials": {
+        "telegramApi": {
+          "id": "jPHx1xCwI9vUpndR",
+          "name": "Github PR Summarizer"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        448,
+        160
+      ],
+      "id": "7f99a5cf-9f95-4f5e-b934-bd9fcc1970ad",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "05876968-c024-4947-a2b8-5cf1777d666a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "wuFwBX5cBEv3cxxf",
+  "tags": []
+}
