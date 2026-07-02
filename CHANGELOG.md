@@ -4,21 +4,22 @@ All workflows added to this repo, tracked by date.
 
 ---
 
-## Format
+## 2026-07-02 — arXiv ML Paper Daily Digest
+**Category:** telegram-bots
+**Complexity:** Beginner-Intermediate
+**Description:** Scheduled daily workflow that fetches the 5 latest ML/AI papers from arXiv, summarizes each abstract using Groq LLaMA3, and delivers a clean digest to Telegram every morning at 8AM. No API key required for arXiv — fully free stack.
 
-Each entry follows this pattern:
-```
-## YYYY-MM-DD — Workflow Name
-**Category:** ai-agents / telegram-bots / productivity / content-automation / utilities
-**Complexity:** Beginner / Intermediate / Advanced
-**Description:** What was built and why.
-```
+---
+
+## 2026-07-01 — GitHub PR Summarizer Bot
+**Category:** telegram-bots
+**Complexity:** Intermediate
+**Description:** Webhook-triggered workflow that catches GitHub PR events (opened, synchronize, reopened), extracts PR metadata via JavaScript, generates an AI summary using Groq LLaMA3, and delivers it instantly to Telegram. Full DevOps + AI integration with ngrok tunneling.
 
 ---
 
 ## 2026-06-26 — Initial Repo Restructure
-
-**Type:** Repository Organization  
+**Type:** Repository Organization
 **Changes:**
 - Reorganized 11 existing workflows into category folders
 - Added root `README.md` with badges, workflow table, and quick start

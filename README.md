@@ -2,7 +2,7 @@
 
 > A growing collection of production-ready n8n automation workflows — built daily, organized by category, and designed to solve real problems.
 
-![Workflows](https://img.shields.io/badge/workflows-11-blue?style=flat-square)
+![Workflows](https://img.shields.io/badge/workflows-13-blue?style=flat-square)
 ![Stack](https://img.shields.io/badge/stack-n8n%20%7C%20Docker%20%7C%20Telegram-orange?style=flat-square)
 ![Maintained](https://img.shields.io/badge/maintained-actively-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
@@ -26,6 +26,12 @@ n8n-workflows/
 
 ## ⚡ Workflows
 
+### 🤖 Telegram Bots
+| Workflow | Description | Nodes Used | Added |
+|----------|-------------|------------|-------|
+| [GitHub PR Summarizer](./telegram-bots/github-pr-summarizer/) | Webhook-triggered bot that catches GitHub PRs and sends AI summaries to Telegram instantly | Webhook, Code, IF, Groq, Telegram | 2026-07-01 |
+| [arXiv ML Daily Digest](./telegram-bots/arxiv-ml-digest/) | Fetches 5 latest ML/AI papers from arXiv every morning and delivers AI-summarized digest to Telegram | Schedule, HTTP Request, Code, Groq, Telegram | 2026-07-02 |
+
 ### 🧠 AI Agents
 | Workflow | Description | Nodes Used |
 |----------|-------------|------------|
@@ -33,11 +39,6 @@ n8n-workflows/
 | [PDF ChatBot](./ai-agents/pdf-chatbot/) | Upload any PDF and chat with it via AI | PDF Extract, Vector Store, AI Chat |
 | [Contract Bot](./ai-agents/contract-bot/) | AI reviews contracts and flags risky clauses | PDF, OpenAI, Webhook |
 | [Universal Web Reader](./ai-agents/universal-web-reader/) | Reads and summarizes any URL with AI | HTTP Request, Cheerio, OpenAI |
-
-### 🤖 Telegram Bots
-| Workflow | Description | Nodes Used |
-|----------|-------------|------------|
-| *(coming soon)* | | |
 
 ### 📋 Productivity
 | Workflow | Description | Nodes Used |
@@ -67,8 +68,9 @@ n8n-workflows/
 | **n8n** (Docker) | Workflow automation engine |
 | **ngrok** | Expose local n8n to the internet for webhooks |
 | **Telegram Bot API** | Primary interface for most user-facing bots |
-| **Spotify API** | Music automation and playlist workflows |
-| **Community Nodes** | Extended functionality beyond core n8n |
+| **Groq** | Fast LLM inference (LLaMA3) for AI summarization |
+| **arXiv API** | Free ML/AI paper feed |
+| **GitHub Webhooks** | PR and repo event triggers |
 
 ---
 
@@ -76,24 +78,25 @@ n8n-workflows/
 
 ### 1. Run n8n with Docker
 ```bash
-docker run -it --rm \
+docker run -d \
   --name n8n \
-  -p 5678:5678 \
-  -v ~/.n8n:/home/node/.n8n \
+  -p 5679:5678 \
+  -e WEBHOOK_URL=https://your-ngrok-domain.ngrok-free.dev \
+  -v n8n_data:/home/node/.n8n \
   n8nio/n8n
 ```
 
-### 2. Expose with ngrok (for webhooks)
+### 2. Start ngrok tunnel (in a separate terminal)
 ```bash
-ngrok http 5678
+ngrok http 5679 --url=your-static-domain.ngrok-free.dev
 ```
-Copy the `https://` URL — use it as your webhook base URL in n8n settings.
 
 ### 3. Import a Workflow
-1. Open n8n at `http://localhost:5678`
-2. Go to **Workflows → Import from File**
-3. Select any `workflow.json` from this repo
-4. Add your credentials and activate
+1. Open n8n at `http://localhost:5679`
+2. Go to **Workflows → Create Workflow**
+3. Click **⋯ → Import from File**
+4. Select any `workflow.json` from this repo
+5. Add credentials and publish
 
 > **Full setup guide:** [docs/setup.md](./docs/setup.md)
 
@@ -101,22 +104,19 @@ Copy the `https://` URL — use it as your webhook base URL in n8n settings.
 
 ## 📦 Community Nodes Used
 
-Some workflows require community nodes. Install them via **Settings → Community Nodes** in n8n:
+Some workflows require community nodes. Install via **Settings → Community Nodes** in n8n.
 
-| Node | Used In |
-|------|---------|
-| `n8n-nodes-base` | All workflows |
-| See [docs/community-nodes.md](./docs/community-nodes.md) | For full list |
+See [docs/community-nodes.md](./docs/community-nodes.md) for the full list.
 
 ---
 
 ## 📅 Daily Build Log
 
-This repo is updated daily with one new workflow. Each entry links to the workflow folder.
-
-| Date | Workflow | Category |
-|------|----------|----------|
-| *Active from Day 1* | Initial 11 workflows migrated and organized | Various |
+| Date | Workflow | Category | Status |
+|------|----------|----------|--------|
+| 2026-07-02 | [arXiv ML Daily Digest](./telegram-bots/arxiv-ml-digest/) | telegram-bots | ✅ Live |
+| 2026-07-01 | [GitHub PR Summarizer](./telegram-bots/github-pr-summarizer/) | telegram-bots | ✅ Live |
+| 2026-06-26 | Initial 11 workflows migrated and repo restructured | various | ✅ Done |
 
 ---
 
