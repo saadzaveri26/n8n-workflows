@@ -1,0 +1,209 @@
+{
+  "name": "Smart Expense Logger",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0304fd0d-9eff-4def-b9a6-c280703242ba",
+      "name": "Telegram Trigger",
+      "webhookId": "326619e7-ea5b-4e26-b9db-00ce9a33f9ce",
+      "credentials": {
+        "telegramApi": {
+          "id": "nnQdo3mtfIPcBcV1",
+          "name": "Smart Expense Logger"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.message.text.trim();\nconst parts = text.split(' ');\n\nconst amount = parseFloat(parts.find(p => !isNaN(p))) || 0;\nconst category = parts.find(p => isNaN(p) && p !== parts[0]) || 'General';\nconst item = parts[0];\n\nconst now = new Date();\nconst date = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });\nconst time = now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });\n\nreturn [{\n  json: {\n    date,\n    time,\n    item,\n    amount,\n    category,\n    raw: text\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "dea3e29f-6d65-4622-9629-7e2e83a9b25a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1dWJRBggeTvcE6cMdnEHoXRxhvOW-4PHF60N82giPOLc",
+          "mode": "list",
+          "cachedResultName": "Expense Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dWJRBggeTvcE6cMdnEHoXRxhvOW-4PHF60N82giPOLc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dWJRBggeTvcE6cMdnEHoXRxhvOW-4PHF60N82giPOLc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Time": "={{ $json.time }}",
+            "Item": "={{ $json.item }}",
+            "Amount": "={{ $json.amount }}",
+            "Category": "={{ $json.category }}"
+          },
+          "matchingColumns": [
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ac970e8e-c800-4637-97b3-d2ecdb7c01cb",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "0Z781ANM7bfBzvXr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Logged: {{ $('Code in JavaScript').item.json.item }} — Rs {{ $('Code in JavaScript').item.json.amount }} ({{ $('Code in JavaScript').item.json.category }})\nDate: {{ $('Code in JavaScript').item.json.date }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "98355682-97bf-4ba7-ae64-efb50d1393dd",
+      "name": "Send a text message",
+      "webhookId": "8df49009-b9c7-4a24-bdcf-82fabef9c699",
+      "credentials": {
+        "telegramApi": {
+          "id": "nnQdo3mtfIPcBcV1",
+          "name": "Smart Expense Logger"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b7fd9a9f-f62e-477a-aecc-b6d39e950809",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "FlyJKo9WfwxkyKPz",
+  "tags": []
+}

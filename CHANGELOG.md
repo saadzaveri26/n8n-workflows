@@ -3,6 +3,10 @@
 All workflows added to this repo, tracked by date.
 
 ---
+## 2026-07-03 — Smart Expense Logger Bot
+**Category:** telegram-bots
+**Complexity:** Beginner
+**Description:** Telegram bot that parses natural language expense messages like "Coffee 150 food" and automatically logs item, amount, category, date and time to Google Sheets. Uses OAuth2 for Google Sheets authentication.
 
 ## 2026-07-02 — arXiv ML Paper Daily Digest
 **Category:** telegram-bots

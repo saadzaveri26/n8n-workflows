@@ -31,6 +31,7 @@ n8n-workflows/
 |----------|-------------|------------|-------|
 | [GitHub PR Summarizer](./telegram-bots/github-pr-summarizer/) | Webhook-triggered bot that catches GitHub PRs and sends AI summaries to Telegram instantly | Webhook, Code, IF, Groq, Telegram | 2026-07-01 |
 | [arXiv ML Daily Digest](./telegram-bots/arxiv-ml-digest/) | Fetches 5 latest ML/AI papers from arXiv every morning and delivers AI-summarized digest to Telegram | Schedule, HTTP Request, Code, Groq, Telegram | 2026-07-02 |
+| [Smart Expense Logger](./telegram-bots/smart-expense-logger/) | Send expense messages to Telegram bot and auto-log to Google Sheets with date and category | Telegram Trigger, Code, Google Sheets, Telegram | 2026-07-03 |
 
 ### 🧠 AI Agents
 | Workflow | Description | Nodes Used |
