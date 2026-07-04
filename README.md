@@ -47,6 +47,7 @@ n8n-workflows/
 | [AI Email Assistant](./productivity/ai-email-assistant/) | Drafts smart email replies using AI | Gmail, OpenAI, Webhook |
 | [Meeting Secretary](./productivity/meeting-secretary/) | Transcribes meetings and extracts action items | Audio, Whisper, Notion |
 | [Resume Screener](./productivity/resume-screener/) | Scores resumes against a job description | PDF, OpenAI, Google Sheets |
+| [AI Job Application Tracker](./productivity/job-application-tracker/) | Telegram bot that uses Groq AI to extract and log job application details to Google Sheets | Telegram Trigger, Groq, Code, Google Sheets, Telegram | 2026-07-04 |
 
 ### 📣 Content Automation
 | Workflow | Description | Nodes Used |

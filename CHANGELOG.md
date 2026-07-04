@@ -3,6 +3,12 @@
 All workflows added to this repo, tracked by date.
 
 ---
+
+## 2026-07-04 — AI Job Application Tracker
+**Category:** productivity
+**Complexity:** Intermediate
+**Description:** Telegram bot that uses Groq LLaMA3 to parse natural language job application messages, extract company, role, status and source, then logs everything to Google Sheets automatically.
+
 ## 2026-07-03 — Smart Expense Logger Bot
 **Category:** telegram-bots
 **Complexity:** Beginner

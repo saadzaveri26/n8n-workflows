@@ -1,0 +1,276 @@
+{
+  "name": "AI Job application tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "7b9b9ce2-824d-417d-860a-48595a4445af",
+      "name": "Telegram Trigger",
+      "webhookId": "b2a8ba9b-8110-4d96-a913-68512b04fe31",
+      "credentials": {
+        "telegramApi": {
+          "id": "wsfrLBikoX38PDlY",
+          "name": "AI Job tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a job application parser. Extract details from the message below...",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "55342d61-3a5e-4ba6-8234-2f2d19a077df",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        192
+      ],
+      "id": "dd6dd871-ede4-4f12-8df8-dfd5408cf688",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output;\n\nlet parsed;\ntry {\n  const cleaned = raw.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = {\n    company: 'Unknown',\n    role: 'Unknown', \n    status: 'Applied',\n    source: 'Unknown',\n    notes: raw\n  };\n}\n\nconst now = new Date();\nconst date = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });\n\nreturn [{\n  json: {\n    date,\n    company: parsed.company || 'Unknown',\n    role: parsed.role || 'Unknown',\n    status: parsed.status || 'Applied',\n    source: parsed.source || 'Unknown',\n    notes: parsed.notes || ''\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        16
+      ],
+      "id": "cbcd4b64-abf8-48ad-81ba-1a704029529c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1i3cgYJK0w7izQ_6la_6-oyubIcopQ3VfE3SJ5nbVQ3s",
+          "mode": "list",
+          "cachedResultName": "AI Job Application Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1i3cgYJK0w7izQ_6la_6-oyubIcopQ3VfE3SJ5nbVQ3s/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1i3cgYJK0w7izQ_6la_6-oyubIcopQ3VfE3SJ5nbVQ3s/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Company": "={{ $json.company }}",
+            "Role": "={{ $json.role }}",
+            "Status": "={{ $json.status }}",
+            "Source": "={{ $json.source }}",
+            "Notes": "={{ $json.notes }}"
+          },
+          "matchingColumns": [
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        16
+      ],
+      "id": "957d29fc-d840-48fd-85f7-d7a9ca1bb4b7",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "0Z781ANM7bfBzvXr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Logged Application\n\nCompany: {{ $('Code in JavaScript').item.json.company }}\nRole: {{ $('Code in JavaScript').item.json.role }}\nStatus: {{ $('Code in JavaScript').item.json.status }}\nSource: {{ $('Code in JavaScript').item.json.source }}\nDate: {{ $('Code in JavaScript').item.json.date }}\nNotes: {{ $('Code in JavaScript').item.json.notes }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        16
+      ],
+      "id": "9d883172-7ad0-4d1e-b3d9-dccbd2383ab1",
+      "name": "Send a text message",
+      "webhookId": "79e4a12c-d203-43c9-ae41-c9f20877a4de",
+      "credentials": {
+        "telegramApi": {
+          "id": "wsfrLBikoX38PDlY",
+          "name": "AI Job tracker"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b689e7c7-969c-45f2-a162-1a805b60e6a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "Cx2cLYkHBpDEqYCA",
+  "tags": []
+}
