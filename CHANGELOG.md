@@ -4,6 +4,11 @@ All workflows added to this repo, tracked by date.
 
 ---
 
+## 2026-07-05 — GitHub Activity Digest
+**Category:** data-pipelines
+**Complexity:** Intermediate
+**Description:** Scheduled evening workflow that fetches GitHub profile stats and recent public events via GitHub API, aggregates today's activity, generates a motivational summary using Groq, and delivers it to Telegram daily at 6PM.
+
 ## 2026-07-04 — AI Job Application Tracker
 **Category:** productivity
 **Complexity:** Intermediate

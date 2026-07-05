@@ -33,6 +33,11 @@ n8n-workflows/
 | [arXiv ML Daily Digest](./telegram-bots/arxiv-ml-digest/) | Fetches 5 latest ML/AI papers from arXiv every morning and delivers AI-summarized digest to Telegram | Schedule, HTTP Request, Code, Groq, Telegram | 2026-07-02 |
 | [Smart Expense Logger](./telegram-bots/smart-expense-logger/) | Send expense messages to Telegram bot and auto-log to Google Sheets with date and category | Telegram Trigger, Code, Google Sheets, Telegram | 2026-07-03 |
 
+### 🔄 Data Pipelines
+| Workflow | Description | Nodes Used | Added |
+|----------|-------------|------------|-------|
+| [GitHub Activity Digest](./data-pipelines/github-activity-digest/) | Daily scheduled digest of your GitHub profile stats and activity sent to Telegram | Schedule, HTTP Request x2, Code, Groq, Telegram | 2026-07-05 |
+
 ### 🧠 AI Agents
 | Workflow | Description | Nodes Used |
 |----------|-------------|------------|
