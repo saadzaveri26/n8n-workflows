@@ -1,0 +1,283 @@
+{
+  "name": "Website Monitor Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        16
+      ],
+      "id": "3fcbd542-9dab-488f-ba16-3c792dd044bd",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://anthropic.com/careers",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -64,
+        16
+      ],
+      "id": "fe4feda8-6d83-4b0c-b840-23b6e4273abe",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.data;\n\nconst clean = html\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, '')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, '')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/\\s+/g, ' ')\n  .trim()\n  .slice(0, 3000);\n\nreturn [{ json: { content: clean, url: 'https://anthropic.com/careers' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        16
+      ],
+      "id": "a5d33ec6-fa9e-4d0c-826f-5d5d36e9a0e5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const current = $input.first().json.content;\nconst url = $input.first().json.url;\n\nconst stored = $getWorkflowStaticData('global');\nconst previous = stored[url] || '';\n\nconst hasChanged = previous !== '' && current !== previous;\n\nstored[url] = current;\n\nreturn [{\n  json: {\n    hasChanged,\n    current,\n    previous: previous.slice(0, 1000),\n    url,\n    isFirstRun: previous === ''\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        16
+      ],
+      "id": "bb557860-5aaa-46f6-a729-7bedb48cc581",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4a9081a7-96fe-4c51-bd56-751b96512e7d",
+              "leftValue": "={{ $json.hasChanged }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        560,
+        16
+      ],
+      "id": "d18307b6-6080-4993-97b6-a24941786630",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a website monitoring analyst. Compare these two versions of a webpage and provide a concise analysis.\n\nURL: {{ $json.url }}\n\nCurrent content (latest):\n{{ $json.current.slice(0, 1500) }}\n\nPrevious content:\n{{ $json.previous.slice(0, 1000) }}\n\nProvide:\n1. What changed (be specific)\n2. Significance of the change (High/Medium/Low)\n3. Any action recommended\n\nKeep response under 150 words.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        768,
+        -160
+      ],
+      "id": "77274af2-b048-4283-8cdc-cc31d5551c83",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        768,
+        16
+      ],
+      "id": "7cc32f58-99de-4a1d-97a6-335c138d5e64",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5733665516",
+        "text": "=Website Change Detected!  URL: {{ $('Code in JavaScript1').item.json.url }}  Analysis: {{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "bea9e52b-e036-466d-973c-8a874334f72c",
+      "name": "Send a text message",
+      "webhookId": "ed2de3b0-de22-42fa-b208-c5357afb9ccd",
+      "credentials": {
+        "telegramApi": {
+          "id": "VD1TvXtvMEKtusFs",
+          "name": "Website Monitor Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5733665516",
+        "text": "=Website Monitor: No changes detected today. URL: {{ $json.url }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        272
+      ],
+      "id": "88186015-6f66-42bf-b528-d7084acb7938",
+      "name": "Send a text message1",
+      "webhookId": "1c6eacee-1560-4f48-a8cc-b694ba7c4d20",
+      "credentials": {
+        "telegramApi": {
+          "id": "VD1TvXtvMEKtusFs",
+          "name": "Website Monitor Agent"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6afe25ef-b5bf-4568-92fa-2e6965949719",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "ZEorlCqMy5ioM1Bb",
+  "tags": []
+}

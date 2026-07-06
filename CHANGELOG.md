@@ -4,6 +4,11 @@ All workflows added to this repo, tracked by date.
 
 ---
 
+## 2026-07-06 — Website Monitor Agent
+**Category:** ai-agents
+**Complexity:** Intermediate
+**Description:** Scheduled daily agent that fetches any website, compares content with previously stored version using n8n static data, and sends AI-powered change analysis to Telegram when differences are detected. No external database needed.
+
 ## 2026-07-05 — GitHub Activity Digest
 **Category:** data-pipelines
 **Complexity:** Intermediate
