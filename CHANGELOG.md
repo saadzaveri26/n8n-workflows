@@ -4,6 +4,11 @@ All workflows added to this repo, tracked by date.
 
 ---
 
+## 2026-07-07 — LinkedIn Post Generator
+**Category:** content-automation
+**Complexity:** Beginner-Intermediate
+**Description:** Telegram bot that takes any topic and generates a professional LinkedIn post using Groq LLaMA3-70b. Follows LinkedIn best practices — hook opening, structured bullets, engagement question, and relevant hashtags. Optional Google Sheets content calendar logging.
+
 ## 2026-07-06 — Website Monitor Agent
 **Category:** ai-agents
 **Complexity:** Intermediate
