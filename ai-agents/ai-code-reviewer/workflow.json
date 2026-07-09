@@ -88,7 +88,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer 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"
+              "value": "Bearer your github-token"
             }
           ]
         },
