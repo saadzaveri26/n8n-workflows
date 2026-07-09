@@ -1,0 +1,317 @@
+{
+  "name": "AI Code Review Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "code-review",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "34de3a8d-eca7-4edc-bbb2-21da82ab7a8b",
+      "name": "Webhook",
+      "webhookId": "559b73bd-1134-4b6e-acd8-d89083280b34"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nreturn [{\n  json: {\n    action: body.action,\n    pr_number: body.pull_request?.number,\n    pr_title: body.pull_request?.title,\n    repo: body.repository?.full_name,\n    diff_url: body.pull_request?.diff_url,\n    comments_url: body.pull_request?.comments_url,\n    author: body.pull_request?.user?.login,\n    base_branch: body.pull_request?.base?.ref,\n    head_branch: body.pull_request?.head?.ref,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "ce9a2088-47ee-40e2-a4b1-710538078fed",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bb57dcc4-250d-43ab-9c4c-0057be2848c3",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "opened",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "49c892e4-3cc2-44cd-8a5a-0409465c84aa",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "synchronize",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        192,
+        0
+      ],
+      "id": "645a7990-9c00-44cd-a578-f49d487bef19",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Code in JavaScript').item.json.diff_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3.diff"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-code-reviewer"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        400,
+        -160
+      ],
+      "id": "418e94ec-6579-4c75-9cc6-897529481a0b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior software engineer doing a code review. Analyze this git diff and provide actionable feedback.\n\nPR Title: {{ $json.pr_title }}\nAuthor: {{ $json.author }}\nRepo: {{ $json.repo }}\n\nDiff:\n{{ $json.diff }}\n\nProvide your review in this exact format:\n\n🤖 AI Code Review\n\nIssues Found: [number]\nSecurity: [No issues / X issues found]\nPerformance: [No issues / X suggestions]\n\n[List specific issues with line references if visible]\n\nOverall: [One sentence verdict]\n\nKeep it under 200 words. Be specific and actionable, not generic.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        816,
+        -160
+      ],
+      "id": "1324d1ca-8318-4a6b-9eea-ee93cd5580cb",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        816,
+        48
+      ],
+      "id": "109eee8b-f764-41f0-a577-59dd2a295c0c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Parse Diff').item.json.comments_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-code-reviewer"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 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 "
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"body\": \"{{ $('Basic LLM Chain').item.json.text }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1120,
+        -160
+      ],
+      "id": "9b8a8f9b-3338-45d5-98ef-ad6d561635da",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "chatId": "5733665516",
+        "text": "=Code Review Posted!  PR: {{ $('Parse Diff').item.json.pr_title }} Repo: {{ $('Parse Diff').item.json.repo }} Author: {{ $('Parse Diff').item.json.author }}  Review: {{ $('Basic LLM Chain').item.json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        -160
+      ],
+      "id": "a8d6846f-1e15-4478-b728-bb3d1fbafaa5",
+      "name": "Send a text message",
+      "webhookId": "d535b39e-0e7b-4544-974b-92aceface321",
+      "credentials": {
+        "telegramApi": {
+          "id": "3tSxB7LFVBJoqraA",
+          "name": "AI code Review Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const diff = $input.first().json.data || $input.first().json;\nconst diffText = typeof diff === 'string' ? diff : JSON.stringify(diff);\n\nconst truncated = diffText.slice(0, 3000);\n\nreturn [{\n  json: {\n    diff: truncated,\n    pr_number: $('Code in JavaScript').item.json.pr_number,\n    pr_title: $('Code in JavaScript').item.json.pr_title,\n    repo: $('Code in JavaScript').item.json.repo,\n    comments_url: $('Code in JavaScript').item.json.comments_url,\n    author: $('Code in JavaScript').item.json.author,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        -160
+      ],
+      "id": "047141f8-b9f3-4801-90fa-3f991fc4d8b4",
+      "name": "Parse Diff"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Parse Diff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Diff": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1a6932ac-07ea-46dc-952e-0616424f8c6d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "Fo8hjxx5H0YlZtLW",
+  "tags": []
+}

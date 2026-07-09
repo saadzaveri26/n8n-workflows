@@ -2,7 +2,7 @@
 
 > A growing collection of production-ready n8n automation workflows — built daily, organized by category, and designed to solve real problems.
 
-![Workflows](https://img.shields.io/badge/workflows-13-blue?style=flat-square)
+![Workflows](https://img.shields.io/badge/workflows-19-blue?style=flat-square)
 ![Stack](https://img.shields.io/badge/stack-n8n%20%7C%20Docker%20%7C%20Telegram-orange?style=flat-square)
 ![Maintained](https://img.shields.io/badge/maintained-actively-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
@@ -33,33 +33,36 @@ n8n-workflows/
 | [arXiv ML Daily Digest](./telegram-bots/arxiv-ml-digest/) | Fetches 5 latest ML/AI papers from arXiv every morning and delivers AI-summarized digest to Telegram | Schedule, HTTP Request, Code, Groq, Telegram | 2026-07-02 |
 | [Smart Expense Logger](./telegram-bots/smart-expense-logger/) | Send expense messages to Telegram bot and auto-log to Google Sheets with date and category | Telegram Trigger, Code, Google Sheets, Telegram | 2026-07-03 |
 
+### 🧠 AI Agents
+| Workflow | Description | Nodes Used | Added |
+|----------|-------------|------------|-------|
+| [Website Monitor Agent](./ai-agents/website-monitor-agent/) | Daily scheduled agent that detects website changes and sends AI-powered analysis to Telegram | Schedule, HTTP Request, Code, IF, Groq, Telegram | 2026-07-06 |
+| [AI Code Review Agent](./ai-agents/ai-code-reviewer/) | Fetches git diffs when PRs are opened and posts AI code reviews directly as GitHub PR comments | Webhook, HTTP Request, Code, Groq, Telegram | 2026-07-09 |
+| [Researcher Agent](./ai-agents/researcher-agent/) | Multi-step web research agent with source synthesis | HTTP, AI Agent, Google Search | — |
+| [PDF ChatBot](./ai-agents/pdf-chatbot/) | Upload any PDF and chat with it via AI | PDF Extract, Vector Store, AI Chat | — |
+| [Contract Bot](./ai-agents/contract-bot/) | AI reviews contracts and flags risky clauses | PDF, OpenAI, Webhook | — |
+| [Universal Web Reader](./ai-agents/universal-web-reader/) | Reads and summarizes any URL with AI | HTTP Request, Cheerio, OpenAI | — |
+
+### 📋 Productivity
+| Workflow | Description | Nodes Used | Added |
+|----------|-------------|------------|-------|
+| [AI Job Application Tracker](./productivity/job-application-tracker/) | Telegram bot that uses Groq AI to extract and log job application details to Google Sheets | Telegram Trigger, Groq, Code, Google Sheets, Telegram | 2026-07-04 |
+| [AI Email Assistant](./productivity/ai-email-assistant/) | Drafts smart email replies using AI | Gmail, OpenAI, Webhook | — |
+| [Meeting Secretary](./productivity/meeting-secretary/) | Transcribes meetings and extracts action items | Audio, Whisper, Notion | — |
+| [Resume Screener](./productivity/resume-screener/) | Scores resumes against a job description | PDF, OpenAI, Google Sheets | — |
+
+### 📣 Content Automation
+| Workflow | Description | Nodes Used | Added |
+|----------|-------------|------------|-------|
+| [LinkedIn Post Generator](./content-automation/linkedin-post-generator/) | Takes any topic and generates a professional LinkedIn post using Groq LLaMA3-70b | Telegram Trigger, Groq, Telegram | 2026-07-07 |
+| [Social Autopilot](./content-automation/social-autopilot/) | Auto-generates and posts social content on schedule | OpenAI, Twitter, LinkedIn | — |
+| [YouTube Summarizer](./content-automation/youtube-summarizer/) | Fetches transcript and summarizes any YouTube video | YouTube, OpenAI, Telegram | — |
+| [Image Generator](./content-automation/image-generator/) | Text prompt → AI image → saved to Drive | OpenAI DALL-E, Google Drive | — |
+
 ### 🔄 Data Pipelines
 | Workflow | Description | Nodes Used | Added |
 |----------|-------------|------------|-------|
 | [GitHub Activity Digest](./data-pipelines/github-activity-digest/) | Daily scheduled digest of your GitHub profile stats and activity sent to Telegram | Schedule, HTTP Request x2, Code, Groq, Telegram | 2026-07-05 |
-
-### 🧠 AI Agents
-| Workflow | Description | Nodes Used |
-|----------|-------------|------------|
-| [Researcher Agent](./ai-agents/researcher-agent/) | Multi-step web research agent with source synthesis | HTTP, AI Agent, Google Search |
-| [PDF ChatBot](./ai-agents/pdf-chatbot/) | Upload any PDF and chat with it via AI | PDF Extract, Vector Store, AI Chat |
-| [Contract Bot](./ai-agents/contract-bot/) | AI reviews contracts and flags risky clauses | PDF, OpenAI, Webhook |
-| [Universal Web Reader](./ai-agents/universal-web-reader/) | Reads and summarizes any URL with AI | HTTP Request, Cheerio, OpenAI |
-
-### 📋 Productivity
-| Workflow | Description | Nodes Used |
-|----------|-------------|------------|
-| [AI Email Assistant](./productivity/ai-email-assistant/) | Drafts smart email replies using AI | Gmail, OpenAI, Webhook |
-| [Meeting Secretary](./productivity/meeting-secretary/) | Transcribes meetings and extracts action items | Audio, Whisper, Notion |
-| [Resume Screener](./productivity/resume-screener/) | Scores resumes against a job description | PDF, OpenAI, Google Sheets |
-| [AI Job Application Tracker](./productivity/job-application-tracker/) | Telegram bot that uses Groq AI to extract and log job application details to Google Sheets | Telegram Trigger, Groq, Code, Google Sheets, Telegram | 2026-07-04 |
-
-### 📣 Content Automation
-| Workflow | Description | Nodes Used |
-|----------|-------------|------------|
-| [Social Autopilot](./content-automation/social-autopilot/) | Auto-generates and posts social content on schedule | OpenAI, Twitter, LinkedIn |
-| [YouTube Summarizer](./content-automation/youtube-summarizer/) | Fetches transcript and summarizes any YouTube video | YouTube, OpenAI, Telegram |
-| [Image Generator](./content-automation/image-generator/) | Text prompt → AI image → saved to Drive | OpenAI DALL-E, Google Drive |
 
 ### 🔧 Utilities
 | Workflow | Description | Nodes Used |
@@ -76,8 +79,9 @@ n8n-workflows/
 | **ngrok** | Expose local n8n to the internet for webhooks |
 | **Telegram Bot API** | Primary interface for most user-facing bots |
 | **Groq** | Fast LLM inference (LLaMA3) for AI summarization |
+| **Google Sheets** | Data logging and storage |
+| **GitHub API** | PR events, diffs, and comment posting |
 | **arXiv API** | Free ML/AI paper feed |
-| **GitHub Webhooks** | PR and repo event triggers |
 
 ---
 
@@ -109,18 +113,16 @@ ngrok http 5679 --url=your-static-domain.ngrok-free.dev
 
 ---
 
-## 📦 Community Nodes Used
-
-Some workflows require community nodes. Install via **Settings → Community Nodes** in n8n.
-
-See [docs/community-nodes.md](./docs/community-nodes.md) for the full list.
-
----
-
 ## 📅 Daily Build Log
 
 | Date | Workflow | Category | Status |
 |------|----------|----------|--------|
+| 2026-07-09 | [AI Code Review Agent](./ai-agents/ai-code-reviewer/) | ai-agents | ✅ Live |
+| 2026-07-07 | [LinkedIn Post Generator](./content-automation/linkedin-post-generator/) | content-automation | ✅ Live |
+| 2026-07-06 | [Website Monitor Agent](./ai-agents/website-monitor-agent/) | ai-agents | ✅ Live |
+| 2026-07-05 | [GitHub Activity Digest](./data-pipelines/github-activity-digest/) | data-pipelines | ✅ Live |
+| 2026-07-04 | [AI Job Application Tracker](./productivity/job-application-tracker/) | productivity | ✅ Live |
+| 2026-07-03 | [Smart Expense Logger](./telegram-bots/smart-expense-logger/) | telegram-bots | ✅ Live |
 | 2026-07-02 | [arXiv ML Daily Digest](./telegram-bots/arxiv-ml-digest/) | telegram-bots | ✅ Live |
 | 2026-07-01 | [GitHub PR Summarizer](./telegram-bots/github-pr-summarizer/) | telegram-bots | ✅ Live |
 | 2026-06-26 | Initial 11 workflows migrated and repo restructured | various | ✅ Done |
@@ -129,7 +131,7 @@ See [docs/community-nodes.md](./docs/community-nodes.md) for the full list.
 
 ## 🤝 Using These Workflows
 
-All workflows are free to use and adapt. If you build on top of one:
+All workflows are free to use and adapt.
 - ⭐ Star the repo
 - 🔀 Submit a PR with your improved version
 - 🐛 Open an issue if something's broken
@@ -138,7 +140,7 @@ All workflows are free to use and adapt. If you build on top of one:
 
 ## 👤 Author
 
-**Saad Zaveri** — AI & Data Science Engineer  
+**Saad Zaveri** — AI & Data Science Engineer
 [GitHub](https://github.com/saadzaveri26) · [LinkedIn](https://www.linkedin.com/in/muhammed-saad-zaveri-771875292/)
 
 ---
