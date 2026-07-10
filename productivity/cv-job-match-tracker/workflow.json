@@ -1,0 +1,471 @@
+{
+  "name": "CV JD Match Scorer",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        16
+      ],
+      "id": "c05c52a9-70ea-461e-ad21-5847200cfcc7",
+      "name": "Telegram Trigger",
+      "webhookId": "e3c97261-f845-4657-b8b5-412da7116fe4",
+      "credentials": {
+        "telegramApi": {
+          "id": "Pv8sfDKQY1BpjQCi",
+          "name": "CV JD Match Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.first().json.message;\nconst text = message.text || '';\nconst hasDocument = !!message.document;\nconst caption = message.caption || '';\n\nreturn [{\n  json: {\n    hasDocument,\n    fileId: message.document?.file_id || '',\n    fileName: message.document?.file_name || '',\n    jobDescription: hasDocument ? caption : text,\n    chatId: message.chat.id,\n    isReady: hasDocument && caption.length > 20\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        16
+      ],
+      "id": "c214c5c5-b4a2-4a12-9f23-4a1913a6ab75",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3b3449b7-4b17-429a-9e84-ea265b0fff96",
+              "leftValue": "={{ $json.isReady }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        16
+      ],
+      "id": "8969c3f5-05bc-4806-adf7-904fa4f703cb",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Code in JavaScript').item.json.fileId }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        -80
+      ],
+      "id": "e55a955e-8afc-45ba-92e0-30d840477cab",
+      "name": "Get a file",
+      "webhookId": "2c2ef1c3-9319-44b8-a2f8-d09ab12a327a",
+      "credentials": {
+        "telegramApi": {
+          "id": "Pv8sfDKQY1BpjQCi",
+          "name": "CV JD Match Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/botYour-Telegram-bot-token/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        -80
+      ],
+      "id": "61b2fad2-4932-47bf-94d4-035e91f6159c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        -80
+      ],
+      "id": "ef4fed4b-ad2b-40af-84bc-5838567bd698",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert technical recruiter and career coach. Analyze how well this CV matches the job description.\n\nJOB DESCRIPTION:\n{{ $('Code in JavaScript').item.json.jobDescription }}\n\nCV CONTENT:\n{{ $json.text.slice(0, 3000) }}\n\nReturn ONLY a JSON object in exactly this format, no other text:\n{\n  \"overall_score\": 75,\n  \"skills_score\": 80,\n  \"experience_score\": 70,\n  \"education_score\": 85,\n  \"matched_skills\": [\"skill1\", \"skill2\"],\n  \"missing_skills\": [\"skill1\", \"skill2\"],\n  \"strengths\": \"2-3 sentence summary of strengths\",\n  \"gaps\": \"2-3 sentence summary of gaps\",\n  \"verdict\": \"One line recommendation\",\n  \"role_name\": \"extracted job title\"\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        960,
+        -80
+      ],
+      "id": "ee0eb8a9-8d38-406c-9ace-fdbc822f2a4c",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        960,
+        128
+      ],
+      "id": "5f60bbef-9abc-4531-bf2d-6a0031895cc9",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output || $input.first().json.text;\n\nlet parsed;\ntry {\n  const cleaned = raw.replace(/```json|```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = {\n    overall_score: 0,\n    skills_score: 0,\n    experience_score: 0,\n    education_score: 0,\n    matched_skills: [],\n    missing_skills: [],\n    strengths: 'Parse error',\n    gaps: 'Parse error',\n    verdict: 'Could not analyze',\n    role_name: 'Unknown'\n  };\n}\n\nconst now = new Date();\nconst date = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });\n\nreturn [{\n  json: {\n    ...parsed,\n    date,\n    matched_skills_str: parsed.matched_skills?.join(', ') || '',\n    missing_skills_str: parsed.missing_skills?.join(', ') || ''\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        -80
+      ],
+      "id": "6d6f61d4-2f81-4ddc-9963-7c30773edae1",
+      "name": "Parse Score"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code in JavaScript').item.json.chatId }}",
+        "text": "=CV Match Analysis  Role: {{ $('Parse Score').item.json.role_name }} Overall Match: {{ $('Parse Score').item.json.overall_score }}%  Skills Match: {{ $('Parse Score').item.json.skills_score }}% Experience Match: {{ $('Parse Score').item.json.experience_score }}% Education Match: {{ $('Parse Score').item.json.education_score }}%  Matched Skills: {{ $('Parse Score').item.json.matched_skills_str }}  Missing Skills: {{ $('Parse Score').item.json.missing_skills_str }}  Strengths: {{ $('Parse Score').item.json.strengths }}  Gaps: {{ $('Parse Score').item.json.gaps }}  Verdict: {{ $('Parse Score').item.json.verdict }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1728,
+        -80
+      ],
+      "id": "6cf97663-5576-4cb5-bbb5-68e37c5a8d45",
+      "name": "Send a text message",
+      "webhookId": "7290b475-0167-4d54-92e5-859f79e26e0d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Pv8sfDKQY1BpjQCi",
+          "name": "CV JD Match Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code in JavaScript').item.json.chatId }}",
+        "text": "Send your CV as a PDF file with the job description pasted as the caption.  Example: - Attach your CV.pdf - Caption: \"Senior AI Engineer at Google. Requirements: Python, TensorFlow, 3+ years ML experience...\"",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        112
+      ],
+      "id": "61b424b6-bab4-4df6-bddc-28cfa2b84e4d",
+      "name": "Send a text message1",
+      "webhookId": "bd8da797-aa25-4f2b-83b3-71181c88ed37",
+      "credentials": {
+        "telegramApi": {
+          "id": "Pv8sfDKQY1BpjQCi",
+          "name": "CV JD Match Tracker"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "15pCDoCi-o1O0_ve6MqLgDVYLCnRyIDfL8rAORXoMez4",
+          "mode": "list",
+          "cachedResultName": "CV Match Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15pCDoCi-o1O0_ve6MqLgDVYLCnRyIDfL8rAORXoMez4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15pCDoCi-o1O0_ve6MqLgDVYLCnRyIDfL8rAORXoMez4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date ": "={{ $json.date }}",
+            "Role": "={{ $json.role_name }}",
+            "Overall Score": "={{ $json.overall_score }}",
+            "Skills Score": "={{ $json.skills_score }}",
+            "Experience Score": "={{ $json.experience_score }}",
+            "Missing skills": "={{ $json.missing_skills_str }}",
+            "Verdict": "={{ $json.verdict }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date ",
+              "displayName": "Date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Overall Score",
+              "displayName": "Overall Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Skills Score",
+              "displayName": "Skills Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Experience Score",
+              "displayName": "Experience Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Missing skills",
+              "displayName": "Missing skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Verdict",
+              "displayName": "Verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1520,
+        -80
+      ],
+      "id": "45b9f5c5-1d0f-4547-a32b-5cac4f1e9c09",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "0Z781ANM7bfBzvXr",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Parse Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Score": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "428a9099-54ca-4c00-a8a3-a59d34e379c5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "9NN25I8L28qrn2h9",
+  "tags": []
+}

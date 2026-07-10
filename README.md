@@ -50,6 +50,7 @@ n8n-workflows/
 | [AI Email Assistant](./productivity/ai-email-assistant/) | Drafts smart email replies using AI | Gmail, OpenAI, Webhook | — |
 | [Meeting Secretary](./productivity/meeting-secretary/) | Transcribes meetings and extracts action items | Audio, Whisper, Notion | — |
 | [Resume Screener](./productivity/resume-screener/) | Scores resumes against a job description | PDF, OpenAI, Google Sheets | — |
+| [CV JD Match Scorer](./productivity/cv-jd-match-scorer/) | Send CV PDF + job description to Telegram bot and get AI-powered match score with skills gap analysis | Telegram Trigger, Code, IF, HTTP Request, Extract from File, Groq, Google Sheets, Telegram | 2026-07-10 |
 
 ### 📣 Content Automation
 | Workflow | Description | Nodes Used | Added |

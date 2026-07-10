@@ -4,6 +4,11 @@ All workflows added to this repo, tracked by date.
 
 ---
 
+## 2026-07-10 — CV JD Match Scorer
+**Category:** productivity
+**Complexity:** Advanced
+**Description:** Telegram bot that accepts a CV PDF with job description as caption, extracts PDF text, scores the match using Groq LLaMA3-70b across skills/experience/education dimensions, logs results to Google Sheets, and delivers detailed analysis with matched/missing skills and verdict.
+
 ## 2026-07-09 — AI Code Review Agent
 **Category:** ai-agents
 **Complexity:** Advanced
