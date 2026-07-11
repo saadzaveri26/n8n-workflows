@@ -4,6 +4,11 @@ All workflows added to this repo, tracked by date.
 
 ---
 
+## 2026-07-11 — Autonomous Research Agent
+**Category:** ai-agents
+**Complexity:** Advanced
+**Description:** First workflow using n8n's AI Agent node instead of Basic LLM Chain — demonstrates true agentic behavior with autonomous tool-calling (Wikipedia lookup), multi-step reasoning, and persistent conversation memory via Simple Memory node. Marks the shift from static LLM chains to dynamic reasoning agents.
+
 ## 2026-07-10 — CV JD Match Scorer
 **Category:** productivity
 **Complexity:** Advanced
