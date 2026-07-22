@@ -4,6 +4,11 @@ All workflows added to this repo, tracked by date.
 
 ---
 
+## 2026-07-12 — RAG Document Q&A System
+**Category:** ai-agents
+**Complexity:** Advanced
+**Description:** Two-part RAG (Retrieval-Augmented Generation) pipeline — an ingestion workflow that chunks documents and stores embeddings in an in-memory vector store, and a query workflow that retrieves relevant chunks via semantic search and generates grounded answers using Groq. Demonstrates production RAG patterns: chunking, embedding, retrieval, and context-grounded generation.
+
 ## 2026-07-11 — Autonomous Research Agent
 **Category:** ai-agents
 **Complexity:** Advanced

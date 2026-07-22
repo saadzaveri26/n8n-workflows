@@ -43,6 +43,7 @@ n8n-workflows/
 | [Contract Bot](./ai-agents/contract-bot/) | AI reviews contracts and flags risky clauses | PDF, OpenAI, Webhook | — |
 | [Universal Web Reader](./ai-agents/universal-web-reader/) | Reads and summarizes any URL with AI | HTTP Request, Cheerio, OpenAI | — |
 | [Autonomous Research Agent](./ai-agents/autonomous-research-agent/) | Tool-calling AI agent using n8n AI Agent node with Wikipedia lookup and conversation memory — demonstrates real agentic reasoning vs simple LLM chains | Telegram Trigger, AI Agent, Groq, Wikipedia Tool, Simple Memory, Telegram | 2026-07-11 |
+| [RAG Document Q&A](./ai-agents/rag-document-qa/) | Two-workflow RAG system — ingests documents into a vector store and answers questions grounded in the document content using semantic search + Groq | Telegram Trigger, Text Splitter, Embeddings, Vector Store, Groq, Telegram | 2026-07-12 |
 
 ### 📋 Productivity
 | Workflow | Description | Nodes Used | Added |

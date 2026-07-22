@@ -1,0 +1,525 @@
+{
+  "name": "RAG Ingest Documents",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        32
+      ],
+      "id": "a8d24274-4be0-4850-937c-8f33d1ac55c9",
+      "name": "Telegram Trigger",
+      "webhookId": "4f680539-8ac7-4bd4-82cf-ea6230170f2f",
+      "credentials": {
+        "telegramApi": {
+          "id": "bvJVzssNT1Xm6uDF",
+          "name": "RAG Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.document.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "6062ca6f-8c40-4639-9efb-5d175c694a2f",
+      "name": "Get a file",
+      "webhookId": "b6b131ce-f926-42ea-a8ec-42b05177d65c",
+      "credentials": {
+        "telegramApi": {
+          "id": "bvJVzssNT1Xm6uDF",
+          "name": "RAG Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot8791195974:AAGGGqGmNr2rD_arYub9Uay-tSvzH1APoI4/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        160,
+        0
+      ],
+      "id": "c0788911-f123-4097-8b90-5431556e6ae6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        0
+      ],
+      "id": "ae0612d0-9df1-44ea-b1dc-68cc75dd3fce",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.text;\nconst chunkSize = 500;\nconst overlap = 50;\n\nconst chunks = [];\nlet start = 0;\n\nwhile (start < text.length) {\n  const end = Math.min(start + chunkSize, text.length);\n  chunks.push({ json: { pageContent: text.slice(start, end) } });\n  start += chunkSize - overlap;\n}\n\nreturn chunks;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        0
+      ],
+      "id": "1142d694-b2eb-4c4b-9c83-f7b1869a26f2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "my-documents",
+          "mode": "list",
+          "cachedResultName": "my-documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        0
+      ],
+      "id": "6ec7d616-6375-4a83-89c8-5a03fd7fb2c7",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "nvidia/nv-embed-v1",
+          "mode": "list",
+          "cachedResultName": "nvidia/nv-embed-v1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsNvidia",
+      "typeVersion": 1,
+      "position": [
+        784,
+        224
+      ],
+      "id": "f55c4636-6325-41b2-9adb-70c47a109561",
+      "name": "NVIDIA Nemotron Embeddings",
+      "credentials": {
+        "nvidiaApi": {
+          "id": "mJRWbrFmxw0SDuF6",
+          "name": "NVIDIA Nemotron account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        208
+      ],
+      "id": "aa23d2e0-38ea-4325-a4c6-d70dc1d324cf",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Document indexed! You can now ask me questions about it.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "af2b2a22-3b33-46ac-8813-0d1313776a88",
+      "name": "Send a text message",
+      "webhookId": "dcecc778-4dae-4b52-a6ee-6e7af8b7bce6",
+      "credentials": {
+        "telegramApi": {
+          "id": "bvJVzssNT1Xm6uDF",
+          "name": "RAG Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "32075b99-65c6-470c-9da9-16e9d645d16d",
+              "leftValue": "={{ $json.message.document }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "={{ false }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -384,
+        32
+      ],
+      "id": "0df7583a-6296-4c61-8666-8a50c6353945",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "value": "my-documents",
+          "mode": "list",
+          "cachedResultName": "my-documents"
+        },
+        "prompt": "={{ $json.message.text }}",
+        "topK": 3
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        192
+      ],
+      "id": "626cf033-e5ba-404e-b683-2eea5d5b751a",
+      "name": "Simple Vector Store1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "nvidia/nv-embed-v1",
+          "mode": "list",
+          "cachedResultName": "nvidia/nv-embed-v1"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsNvidia",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        416
+      ],
+      "id": "c3689a6a-01ae-4092-a5f4-f38d45c3efc3",
+      "name": "NVIDIA Nemotron Embeddings1",
+      "credentials": {
+        "nvidiaApi": {
+          "id": "mJRWbrFmxw0SDuF6",
+          "name": "NVIDIA Nemotron account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Answer the question using ONLY the context below. If the answer isn't in the context, say \"I don't have that information in the document.\"\n\nContext:\n{{ $json.document.pageContent }}\n\nQuestion: {{ $('Telegram Trigger').item.json.message.text }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        128,
+        192
+      ],
+      "id": "7ae0504f-8c6e-4121-8fb3-c0b8185698df",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        128,
+        400
+      ],
+      "id": "1666f5d8-1c55-4b5b-9f18-3752b9c9e921",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        192
+      ],
+      "id": "06c9fa99-a5a5-49fd-9c15-9987115430dc",
+      "name": "Send a text message1",
+      "webhookId": "3c78f7b8-70f4-474d-a828-7063f7a6885a",
+      "credentials": {
+        "telegramApi": {
+          "id": "bvJVzssNT1Xm6uDF",
+          "name": "RAG Agent"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -224
+      ],
+      "id": "701ae415-1791-4ad8-b624-8f1c01ff32f1",
+      "name": "Limit"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        368,
+        592
+      ],
+      "id": "dffa8483-f583-494c-a7eb-60798cc0b8f7",
+      "name": "Limit1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA Nemotron Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Simple Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NVIDIA Nemotron Embeddings1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "40851a08-fa11-4dbf-ab6e-667fe12723dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "UAL7v3oSwRmLqLqL",
+  "tags": []
+}
