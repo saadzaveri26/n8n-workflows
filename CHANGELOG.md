@@ -3,6 +3,10 @@
 All workflows added to this repo, tracked by date.
 
 ---
+## 2026-08-29 — Voice Note Task Extractor
+**Category:** productivity
+**Complexity:** Intermediate-Advanced
+**Description:** Multimodal workflow transcribing Telegram voice notes via Groq Whisper-large-v3, extracting structured action items (task, due date, priority) through LLM reasoning, logged individually to Google Sheets. First workflow handling audio input. Required renaming Telegram's .oga file extension to match Groq's accepted audio formats.
 
 ## 2026-07-12 — RAG Document Q&A System
 **Category:** ai-agents

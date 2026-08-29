@@ -1,0 +1,327 @@
+{
+  "name": "Voice Note Task Extractor",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        0
+      ],
+      "id": "0cfd350d-00c9-4f68-88fd-72ed0c23314d",
+      "name": "Telegram Trigger",
+      "webhookId": "773110a4-898b-483b-860d-343a4125e52f",
+      "credentials": {
+        "telegramApi": {
+          "id": "Xn16ohH5VxO3hc66",
+          "name": "Voice Note Task Extractor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        0
+      ],
+      "id": "363400c9-2ac1-4c8e-9d64-dbb35203b0f4",
+      "name": "Get a file",
+      "webhookId": "eeb447d3-c58c-4fb1-8c4c-c3309dff4e84",
+      "credentials": {
+        "telegramApi": {
+          "id": "Xn16ohH5VxO3hc66",
+          "name": "Voice Note Task Extractor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot8833556130:AAGQhykO-QDwJTyJtB-q40XjuZCxNYzCQWI/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        16,
+        0
+      ],
+      "id": "83e3cde1-a543-426e-a4f0-c4bb19c3c241",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "2c9d8d6a-8c87-4c1a-aeca-e8701e0057ae",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract action items from this voice note transcript. Return ONLY a valid JSON array, no other text, no markdown.\n\nTranscript: {{ $json.text }}\n\nReturn in this exact format:\n[\n  {\"task\": \"task description\", \"due\": \"deadline or ASAP\", \"priority\": \"High/Medium/Low\"}\n]\n\nIf no clear tasks exist, return an empty array [].",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        656,
+        0
+      ],
+      "id": "9c3e7f37-7f3d-487b-9f12-257fcfcf75c5",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        656,
+        176
+      ],
+      "id": "39f9b207-a00e-4a65-ba4a-d0b47075c9c6",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tGo1yfI9F5qhSyFc",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output || $input.first().json.text;\nconst transcript = $('HTTP Request1').item.json.text || 'N/A';\n\nlet tasks;\ntry {\n  const cleaned = raw.replace(/```json|```/g, '').trim();\n  tasks = JSON.parse(cleaned);\n} catch(e) {\n  tasks = [];\n}\n\nconst now = new Date();\nconst date = now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });\n\nreturn tasks.map(t => ({\n  json: {\n    date,\n    task: t.task,\n    due: t.due,\n    priority: t.priority,\n    transcript: transcript.slice(0, 200)\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "691f9ea1-bab2-4e42-a484-5313256640b9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst taskList = items.map((item, i) => \n  `${i + 1}. ${item.json.task} — Due: ${item.json.due} — Priority: ${item.json.priority}`\n).join('\\n');\n\nreturn [{\n  json: {\n    summary: taskList || 'No clear tasks found in this voice note.',\n    count: items.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        0
+      ],
+      "id": "8d8f2e71-4d5c-4bd6-b941-f5a82e7c402a",
+      "name": "Build Summary"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Voice Note Processed!  Action Items: {{ $json.summary }}  {{ $json.count }} task(s) logged to your tracker.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1424,
+        0
+      ],
+      "id": "607904a3-46d2-4ae6-abf4-331a4b91e2aa",
+      "name": "Send a text message",
+      "webhookId": "da79ed7c-a552-4db2-b086-127350817872",
+      "credentials": {
+        "telegramApi": {
+          "id": "Xn16ohH5VxO3hc66",
+          "name": "Voice Note Task Extractor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const binary = $input.first().binary.data;\nbinary.fileName = 'audio.ogg';\nbinary.fileExtension = 'ogg';\nbinary.mimeType = 'audio/ogg';\n\nreturn [{\n  json: $input.first().json,\n  binary: { data: binary }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "67e8d372-01cc-42b2-b6ab-f1abf0dd9216",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Build Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Summary": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5cbc2e87-dc9b-466d-bd09-f42fe37748ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d464ea9572b0ab55142c3e55db5b2185afd7ef956c0fe263abb113f9ec244605"
+  },
+  "nodeGroups": [],
+  "id": "YATL2p84XIuArBFh",
+  "tags": []
+}
